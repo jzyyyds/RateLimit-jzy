@@ -5,6 +5,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.example.ratelimitjztcommon.constant.Constant;
+import org.example.ratelimitjztcommon.excepition.RateLimitException;
 import org.example.ratelimitjztcommon.model.RateLimitRule;
 import org.example.ratelimitjzycore.annotation.RateLimit;
 import org.example.ratelimitjzycore.handler.RateLimitHandler;
@@ -34,10 +36,8 @@ public class RateLimiterInterceptor {
         boolean allow = rateLimitHandler.isAllow(rule);
         if (!allow) {
             //说明被限流了
-            logger.info("被限流了！！！");
-            throw new RuntimeException("限流");
+            throw new RateLimitException(Constant.RATELIMIT_EXCEPTION_MESSAGE,rateLimit.rateLimitType());
         }
-        logger.info("成功");
         return joinPoint.proceed();
     }
 
