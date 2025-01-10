@@ -13,4 +13,10 @@ public class TestController {
     public String testLimit() {
         return "hello";
     }
+
+    @GetMapping("/testWindow")
+    @RateLimit(rateLimitType = RateLimitTypeEnum.TIME_WINDOW , key = "test_window",capacity = 50, time = 5)
+    public String testLimitByTime() {
+        return "hello_window";
+    }
 }
