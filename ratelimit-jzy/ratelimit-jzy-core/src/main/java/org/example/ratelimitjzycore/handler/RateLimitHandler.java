@@ -6,6 +6,7 @@ import org.example.ratelimitjztcommon.enums.RateLimitTypeEnum;
 import org.example.ratelimitjztcommon.model.RateLimitRule;
 import org.example.ratelimitjzycore.service.RateLimitService;
 import org.example.ratelimitjzycore.service.impl.CounterRateLimitServiceImpl;
+import org.example.ratelimitjzycore.service.impl.WindowRateLimitServiceImpl;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ public class RateLimitHandler {
 
     public RateLimitHandler(RedissonClient redissonClient){
         rateLimitServiceMap.put(RateLimitTypeEnum.COUNTER.getKey(),new CounterRateLimitServiceImpl(redissonClient));
+        rateLimitServiceMap.put(RateLimitTypeEnum.TIME_WINDOW.getKey(), new WindowRateLimitServiceImpl(redissonClient));
     }
 
     public boolean isAllow(RateLimitRule rateLimitRule){

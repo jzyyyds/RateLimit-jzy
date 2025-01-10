@@ -14,7 +14,8 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface RateLimit {
     RateLimitTypeEnum rateLimitType() default RateLimitTypeEnum.COUNTER;
-    int rate();
+    int rate() default 0;
     String key();
     int time();
+    int capacity() default 0;
 }

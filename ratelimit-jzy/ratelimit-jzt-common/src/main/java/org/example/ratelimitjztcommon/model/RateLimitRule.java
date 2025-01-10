@@ -14,4 +14,5 @@ public class RateLimitRule {
     private Integer rate;
     private String key;
     private Integer time;
+    private Integer capacity;
 }

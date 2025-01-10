@@ -17,6 +17,7 @@ public class RuleProvider {
                 .key(key)
                 .rateLimitType(rateLimitTypeEnum.getKey())
                 .time(rateLimit.time())
+                .capacity(rateLimit.capacity())
                 .build();
         return rateLimitRule;
     }
