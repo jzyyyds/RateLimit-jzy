@@ -25,4 +25,10 @@ public class TestController {
     public String testLeakyBuckey() {
         return "hello_leaky_bucket";
     }
+
+    @GetMapping("/test/token_bucket")
+    @RateLimit(rateLimitType = RateLimitTypeEnum.TOKEN_BUCKET,key = "test_token_bucket",capacity = 50,rate = 10)
+    public String testTokenBucket() {
+        return "hello_token_bucket";
+    }
 }
