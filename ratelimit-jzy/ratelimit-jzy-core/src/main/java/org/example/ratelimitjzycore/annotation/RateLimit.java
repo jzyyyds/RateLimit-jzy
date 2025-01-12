@@ -16,6 +16,6 @@ public @interface RateLimit {
     RateLimitTypeEnum rateLimitType() default RateLimitTypeEnum.COUNTER;
     int rate() default 0;
     String key();
-    int time();
+    int time() default 1;
     int capacity() default 0;
 }

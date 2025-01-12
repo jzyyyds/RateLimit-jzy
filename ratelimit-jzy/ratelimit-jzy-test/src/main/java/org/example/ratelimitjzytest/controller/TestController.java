@@ -19,4 +19,10 @@ public class TestController {
     public String testLimitByTime() {
         return "hello_window";
     }
+
+    @GetMapping("/test/leaky_buckey")
+    @RateLimit(rateLimitType = RateLimitTypeEnum.LEAKY_BUCKET,key = "test_leaky_buckey",capacity = 50,rate = 10)
+    public String testLeakyBuckey() {
+        return "hello_leaky_bucket";
+    }
 }
