@@ -1,5 +1,6 @@
 package org.example.ratelimitjzystarter.aop;
 
+import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -14,6 +15,7 @@ import org.example.ratelimitjzycore.provide.RuleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Aspect
 @Slf4j
@@ -35,6 +37,11 @@ public class RateLimiterInterceptor {
         RateLimitRule rule = ruleProvider.getRule(joinPoint, rateLimit);
         boolean allow = rateLimitHandler.isAllow(rule);
         if (!allow) {
+            //判断是否需要走降级的逻辑，需要的话，执行自定义的函数，默认为空
+            logger.info("this is can not allow,key:{}",rule.getKey());
+            if (StringUtils.hasLength(rule.getFallbackFunction())) {
+                return ruleProvider.executeFunction(rule.getFallbackFunction(),joinPoint);
+            }
             //说明被限流了
             throw new RateLimitException(Constant.RATELIMIT_EXCEPTION_MESSAGE,rateLimit.rateLimitType());
         }

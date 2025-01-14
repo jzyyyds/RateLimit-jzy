@@ -18,4 +18,10 @@ public @interface RateLimit {
     String key();
     int time() default 1;
     int capacity() default 0;
+
+    /**
+     * 限流后要走的降级策略
+     * @return
+     */
+    String fallbackFunction() default "";
 }

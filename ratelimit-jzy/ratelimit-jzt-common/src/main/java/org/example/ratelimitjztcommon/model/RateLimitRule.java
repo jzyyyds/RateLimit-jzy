@@ -15,4 +15,5 @@ public class RateLimitRule {
     private String key;
     private Integer time;
     private Integer capacity;
+    private String fallbackFunction;
 }
