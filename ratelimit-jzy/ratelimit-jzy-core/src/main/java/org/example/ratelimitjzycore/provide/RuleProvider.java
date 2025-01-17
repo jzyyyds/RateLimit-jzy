@@ -59,17 +59,43 @@ public class RuleProvider implements BeanFactoryAware {
         if (rateLimit.keys().length > 0) {
             keyName = getSpelKeyName(joinPoint,rateLimit);
         }
-        int rate = rateLimit.rate();
+        int rate = getRateValue(rateLimit);
+        int time = getTimeValue(rateLimit);
+        int capacity = getCapaCity(rateLimit);
         RateLimitTypeEnum rateLimitTypeEnum = rateLimit.rateLimitType();
         RateLimitRule rateLimitRule = RateLimitRule.builder()
                 .rate(rate)
                 .key(keyName)
                 .rateLimitType(rateLimitTypeEnum.getKey())
-                .time(rateLimit.time())
-                .capacity(rateLimit.capacity())
+                .time(time)
+                .capacity(capacity)
                 .fallbackFunction(rateLimit.fallbackFunction())
                 .build();
         return rateLimitRule;
+    }
+
+    private int getCapaCity(RateLimit rateLimit) {
+        if (StringUtils.hasLength(rateLimit.capacityExpression())) {
+            String value = parser.parseExpression(resolve(rateLimit.capacityExpression()), PARSER_CONTEXT).getValue(String.class);
+            return Integer.valueOf(value);
+        }
+        return rateLimit.capacity();
+    }
+
+    private int getTimeValue(RateLimit rateLimit) {
+        if (StringUtils.hasLength(rateLimit.timeExpression())) {
+            String value = parser.parseExpression(resolve(rateLimit.timeExpression()), PARSER_CONTEXT).getValue(String.class);
+            return Integer.valueOf(value);
+        }
+        return rateLimit.time();
+    }
+
+    private int getRateValue(RateLimit rateLimit) {
+        if (StringUtils.hasLength(rateLimit.rateExpression())) {
+            String value = parser.parseExpression(resolve(rateLimit.rateExpression()), PARSER_CONTEXT).getValue(String.class);
+            return Integer.valueOf(value);
+        }
+        return rateLimit.rate();
     }
 
     private String getKeyExpression(RateLimit rateLimit) {

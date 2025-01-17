@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 public class TestController {
 
     @RequestMapping("/test")
-    @RateLimit(rateLimitType = RateLimitTypeEnum.COUNTER , rate = 10, time = 10)
+    @RateLimit(rateLimitType = RateLimitTypeEnum.COUNTER,rateExpression = "${rateSpel.key.rate}",timeExpression = "${rateSpel.key.time}")
     public String testLimit(@RequestBody User user) {
         return "hello";
     }

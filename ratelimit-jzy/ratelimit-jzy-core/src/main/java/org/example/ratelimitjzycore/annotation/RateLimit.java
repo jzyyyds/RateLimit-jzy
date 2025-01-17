@@ -36,4 +36,11 @@ public @interface RateLimit {
      * @return
      */
     String keyExpressin() default "";
+
+    String rateExpression() default "";
+
+    String timeExpression() default "";
+
+    String capacityExpression() default "";
+
 }
