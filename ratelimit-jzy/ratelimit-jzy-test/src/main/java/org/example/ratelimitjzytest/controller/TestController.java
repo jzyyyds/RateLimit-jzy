@@ -2,16 +2,15 @@ package org.example.ratelimitjzytest.controller;
 
 import org.example.ratelimitjztcommon.enums.RateLimitTypeEnum;
 import org.example.ratelimitjzycore.annotation.RateLimit;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.example.ratelimitjzytest.entity.User;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class TestController {
 
-    @GetMapping("/test")
-    @RateLimit(rateLimitType = RateLimitTypeEnum.COUNTER , key = "test", rate = 10, time = 1,fallbackFunction = "getFallback")
-    public String testLimit(@RequestParam String name) {
+    @RequestMapping("/test")
+    @RateLimit(rateLimitType = RateLimitTypeEnum.COUNTER , rate = 10, time = 10)
+    public String testLimit(@RequestBody User user) {
         return "hello";
     }
 

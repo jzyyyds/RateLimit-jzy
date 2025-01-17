@@ -1,6 +1,7 @@
 package org.example.ratelimitjzycore.provide;
 
 import com.sun.javafx.css.Rule;
+import jodd.util.StringUtil;
 import lombok.val;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -8,24 +9,115 @@ import org.example.ratelimitjztcommon.enums.RateLimitTypeEnum;
 import org.example.ratelimitjztcommon.excepition.ExecuteFunctionException;
 import org.example.ratelimitjztcommon.model.RateLimitRule;
 import org.example.ratelimitjzycore.annotation.RateLimit;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.expression.MethodBasedEvaluationContext;
+import org.springframework.core.DefaultParameterNameDiscoverer;
+import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.common.TemplateParserContext;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.ArrayList;
+import java.util.List;
 
-public class RuleProvider {
+public class RuleProvider implements BeanFactoryAware {
+    private final ParameterNameDiscoverer nameDiscoverer = new DefaultParameterNameDiscoverer();
+    private final ExpressionParser parser = new SpelExpressionParser();
+    private static final TemplateParserContext PARSER_CONTEXT = new TemplateParserContext();
+    private BeanFactory beanFactory;
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
+    }
+
     public RateLimitRule getRule(ProceedingJoinPoint joinPoint, RateLimit rateLimit){
-        String key = rateLimit.key();
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        //获取key的值
+        //1. 先获取默认的值
+        String keyName = getDefaultKeyName(signature);
+        if (StringUtils.hasLength(rateLimit.key())) {
+            keyName = rateLimit.key();
+        }
+        //基于spel来解析表达式yml文件
+        if (StringUtils.hasLength(rateLimit.keyExpressin())) {
+            String keyExpression = getKeyExpression(rateLimit);
+            if (!ObjectUtils.isEmpty(keyExpression)) {
+                keyName = keyExpression;
+            }
+        }
+        //解析spel的值
+        if (rateLimit.keys().length > 0) {
+            keyName = getSpelKeyName(joinPoint,rateLimit);
+        }
         int rate = rateLimit.rate();
         RateLimitTypeEnum rateLimitTypeEnum = rateLimit.rateLimitType();
         RateLimitRule rateLimitRule = RateLimitRule.builder()
                 .rate(rate)
-                .key(key)
+                .key(keyName)
                 .rateLimitType(rateLimitTypeEnum.getKey())
                 .time(rateLimit.time())
                 .capacity(rateLimit.capacity())
                 .fallbackFunction(rateLimit.fallbackFunction())
                 .build();
         return rateLimitRule;
+    }
+
+    private String getKeyExpression(RateLimit rateLimit) {
+        String value = parser.parseExpression(resolve(rateLimit.keyExpressin()), PARSER_CONTEXT).getValue(String.class);
+        if (null != value) {
+            return value;
+        }
+        return null;
+    }
+
+    private String resolve(String expression) {
+        return ((ConfigurableBeanFactory) this.beanFactory).resolveEmbeddedValue(expression);
+    }
+
+    private String getSpelKeyName(ProceedingJoinPoint joinPoint, RateLimit rateLimit) {
+        Method method = getMethod(joinPoint);
+        List<String> spelKeys = getSpelKeys(rateLimit.keys(),method,joinPoint.getArgs());
+        return StringUtils.collectionToDelimitedString(spelKeys,"","-","");
+    }
+
+    private List<String> getSpelKeys(String[] keys, Method method, Object[] args) {
+        List<String> keyList = new ArrayList<>();
+        for (String key : keys) {
+            if (!ObjectUtils.isEmpty(key)) {
+                EvaluationContext context = new MethodBasedEvaluationContext(null, method, args, nameDiscoverer);
+                Object value = parser.parseExpression(key).getValue(context);
+                keyList.add(ObjectUtils.nullSafeToString(value));
+            }
+        }
+        return keyList;
+    }
+
+    private Method getMethod(ProceedingJoinPoint joinPoint) {
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        Method method = signature.getMethod();
+        if (method.getDeclaringClass().isInterface()) {
+            try {
+                method = joinPoint.getTarget().getClass().getDeclaredMethod(signature.getName(),
+                        method.getParameterTypes());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return method;
+    }
+
+    private String getDefaultKeyName(MethodSignature signature) {
+        return String.format("%s.%s",signature.getDeclaringTypeName(),signature.getMethod().getName());
     }
 
     /**

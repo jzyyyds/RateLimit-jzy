@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 public @interface RateLimit {
     RateLimitTypeEnum rateLimitType() default RateLimitTypeEnum.COUNTER;
     int rate() default 0;
-    String key();
+    String key() default "";
     int time() default 1;
     int capacity() default 0;
 
@@ -24,4 +24,16 @@ public @interface RateLimit {
      * @return
      */
     String fallbackFunction() default "";
+
+    /**
+     * 基于spel来获取key
+     * @return
+     */
+    String[] keys() default {};
+
+    /**
+     * 基于spel来获取yml文件的数据
+     * @return
+     */
+    String keyExpressin() default "";
 }
