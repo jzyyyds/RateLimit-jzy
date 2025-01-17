@@ -30,10 +30,7 @@ public class CounterRateLimitServiceImpl implements RateLimitService {
         String script = getScript();
         List<Object> keys = Collections.singletonList(rateLimitRule.getKey());
         Long result = rScript.eval(RScript.Mode.READ_WRITE, script, RScript.ReturnType.INTEGER, keys, rateLimitRule.getRate(), rateLimitRule.getTime());
-        if (Objects.isNull(result)||result.intValue()>rateLimitRule.getRate()) {
-            return false;
-        }
-        return true;
+        return result == 1;
     }
 
     @Override

@@ -6,10 +6,11 @@ local count = tonumber(ARGV[1]);
 local time = tonumber(ARGV[2]);
 --根据key获取值
 local current = redis.call('get', key);
+local is_allow = 0;
 --判断值是否存在或者当前值是否大于阈值
-if current and tonumber(current) > count then
+if current and tonumber(current) >= count then
     --直接返回
-    return tonumber(current);
+    return is_allow
 end
 --自增
 current = redis.call('incr',key);
@@ -17,5 +18,7 @@ current = redis.call('incr',key);
 if tonumber(current) == 1 then
     redis.call('expire',key,time)
 end
+
+is_allow = 1
 --返回
-return tonumber(current);
+return is_allow;
