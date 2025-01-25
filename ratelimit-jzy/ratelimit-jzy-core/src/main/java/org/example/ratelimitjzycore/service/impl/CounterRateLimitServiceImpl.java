@@ -6,8 +6,6 @@ import org.example.ratelimitjzycore.service.RateLimitService;
 import org.redisson.api.RScript;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.LongCodec;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.util.StreamUtils;
 
 import java.io.IOException;

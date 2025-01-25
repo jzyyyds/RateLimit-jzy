@@ -57,7 +57,7 @@ public class RuleProvider implements BeanFactoryAware {
         }
         //解析spel的值
         if (rateLimit.keys().length > 0) {
-            keyName = getSpelKeyName(joinPoint,rateLimit);
+            keyName = keyName + getSpelKeyName(joinPoint,rateLimit);
         }
         int rate = getRateValue(rateLimit);
         int time = getTimeValue(rateLimit);
